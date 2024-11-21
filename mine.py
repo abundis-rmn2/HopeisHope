@@ -1,41 +1,65 @@
 import requests
 import mysql.connector
 import time
+import json
+
+
+# Load database configuration from config.json
+def load_db_config():
+    with open('db_credentials.json', 'r') as file:
+        return json.load(file)
+
 
 # Database configuration
-DB_CONFIG = {
-    "host": "localhost",
-    "user": "your_username",
-    "password": "your_password",
-    "database": "your_database"
-}
-
+DB_CONFIG = load_db_config()
 # Base URL of the API
 BASE_URL = "https://repd.jalisco.gob.mx/api/v1/version_publica/repd-version-publica-cedulas-busqueda/"
 
-def fetch_data(limit=120):
-    """Fetch data from the API and return all results."""
+
+def fetch_data(limit=3, pause_time=1):
+    """Fetch all data by checking count, total pages, and iterating through all pages."""
     try:
-        response = requests.get(f"{BASE_URL}?limit={limit}&page=1")
-        response.raise_for_status()
-        data = response.json()
-        total_pages = data.get("total_pages", 1)
+        # First, get the total count and total pages from the API
+        initial_response = requests.get(f"{BASE_URL}?limit={limit}&page=1")
+        initial_response.raise_for_status()
+        initial_data = initial_response.json()
+
+        total_count = initial_data.get("count", 0)
+        total_pages = initial_data.get("total_pages", 1)
+
+        # Calculate the probable total pages from count and limit
+        probable_total_pages = (total_count // limit) + (1 if total_count % limit != 0 else 0)
+
+        # Check if probable total pages matches the API's total pages
+        if probable_total_pages == total_pages:
+            print(f"Total pages match: {probable_total_pages}. Proceeding to fetch all pages.")
+        else:
+            print(
+                f"Warning: Probable total pages ({probable_total_pages}) does not match the API's total pages ({total_pages}). Proceeding cautiously.")
 
         all_results = []
 
-        # Iterate through all pages
+        # Iterate through all pages based on total pages
         for page in range(1, total_pages + 1):
             print(f"Fetching page {page}/{total_pages}...")
             response = requests.get(f"{BASE_URL}?limit={limit}&page={page}")
             response.raise_for_status()
             page_data = response.json()
-            all_results.extend(page_data.get("results", []))
-            time.sleep(0.1)
 
-        return all_results
+            # Iterate through the results and print the id_cedula_busqueda
+            for result in page_data.get("results", []):
+                print(f"Fetched ID: {result.get('id_cedula_busqueda')}")
+                insert_data_to_db([result])
+
+            # Adding a pause between requests
+        time.sleep(pause_time)
+
+
     except requests.exceptions.RequestException as e:
         print(f"Error fetching data: {e}")
-        return []
+    except Exception as e:
+        print(f"Unexpected error: {e}")
+
 
 def insert_data_to_db(data):
     """Insert the API data into the database."""
@@ -154,7 +178,9 @@ def insert_data_to_db(data):
             cursor.close()
             conn.close()
 
+
 if __name__ == "__main__":
-    data = fetch_data()
+    # You can now pass limit and pause_time as arguments
+    data = fetch_data(limit=100, pause_time=2)  # Limiting to 20 records with 1 second pause
     if data:
         insert_data_to_db(data)
