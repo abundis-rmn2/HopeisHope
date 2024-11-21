@@ -4,14 +4,16 @@ import time
 import json
 
 
-# Load database configuration from config.json
-def load_db_config():
+# Load configuration from config.json
+def load_config():
     with open('db_credentials.json', 'r') as file:
         return json.load(file)
 
 
-# Database configuration
-DB_CONFIG = load_db_config()
+# The full configuration including Google API key
+CONFIG = load_config()
+# Database configuration excluding the 'google_api' key
+DB_CONFIG = {key: CONFIG[key] for key in CONFIG if key != 'google_api'}
 # Base URL of the API
 BASE_URL = "https://repd.jalisco.gob.mx/api/v1/version_publica/repd-version-publica-cedulas-busqueda/"
 
@@ -52,7 +54,7 @@ def fetch_data(limit=3, pause_time=1):
                 insert_data_to_db([result])
 
             # Adding a pause between requests
-        time.sleep(pause_time)
+            time.sleep(pause_time)
 
 
     except requests.exceptions.RequestException as e:
@@ -63,6 +65,8 @@ def fetch_data(limit=3, pause_time=1):
 
 def insert_data_to_db(data):
     """Insert the API data into the database."""
+    conn = None
+    cursor = None
     try:
         conn = mysql.connector.connect(**DB_CONFIG)
         cursor = conn.cursor()
@@ -174,13 +178,12 @@ def insert_data_to_db(data):
     except mysql.connector.Error as e:
         print(f"Error inserting data into database: {e}")
     finally:
-        if conn.is_connected():
+        if cursor:
             cursor.close()
+        if conn and conn.is_connected():
             conn.close()
 
 
 if __name__ == "__main__":
     # You can now pass limit and pause_time as arguments
-    data = fetch_data(limit=100, pause_time=2)  # Limiting to 20 records with 1 second pause
-    if data:
-        insert_data_to_db(data)
+    fetch_data(limit=100, pause_time=2)  # Limiting to 100 records with 2 second pause
