@@ -186,4 +186,4 @@ def insert_data_to_db(data):
 
 if __name__ == "__main__":
     # You can now pass limit and pause_time as arguments
-    fetch_data(limit=100, pause_time=2)  # Limiting to 100 records with 2 second pause
+    fetch_data(limit=1000, pause_time=2)  # Limiting to 100 records with 2 second pause
