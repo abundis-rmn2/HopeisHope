@@ -1,0 +1,17 @@
+# Ignore all CSV files
+*.csv
+
+# Ignore all content inside the csv folder
+csv/
+
+# Ignore all HTML files
+*.html
+
+# Ignore all content inside the html folder
+html/
+
+# Ignore all IntelliJ IDEA module files
+*.iml
+*.xml
+*.idea 
+*.pyc
