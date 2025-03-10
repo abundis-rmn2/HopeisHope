@@ -15,3 +15,15 @@ html/
 *.xml
 *.idea 
 *.pyc
+
+yolo3/
+yolo4/
+yolo8/
+yolo11/
+
+*.mp4
+*.txt
+*.pt
+.~lock.*
+
+.gitignore
