@@ -13,7 +13,7 @@ def load_data():
     print("Loading REPD dataset...")
     repd_df = pd.read_csv('csv/equi/tatuajes_procesados_REPD.csv')
     print("Loading probable cases dataset...")
-    probable_cases_df = pd.read_csv('csv/cross_examples/person_matches_name_age.csv')
+    probable_cases_df = pd.read_csv('csv/cross_examples/person_matches_name_age.csv').sample(30000)
     
     print("Cleaning and preparing text columns...")
     # Clean and prepare text columns
