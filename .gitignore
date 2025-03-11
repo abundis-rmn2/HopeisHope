@@ -27,3 +27,4 @@ yolo11/
 .~lock.*
 
 .gitignore
+.env
