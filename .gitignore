@@ -15,6 +15,7 @@ html/
 *.xml
 *.idea 
 *.pyc
+*.jpg
 
 yolo3/
 yolo4/
